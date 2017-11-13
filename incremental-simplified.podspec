@@ -26,7 +26,7 @@ This is an implementation of incremental programming. It's based on the ideas in
   s.author           = { 'Chris Eidhof' => 'chris@eidhof.nl' }
   s.source           = { :git => 'https://github.com/agustindc-rga/incremental-simplified.git' }
 
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '9.0'
 
   s.source_files = 'Incremental/**/*.swift'
   

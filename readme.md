@@ -8,5 +8,5 @@ incremental-simplified is available through [CocoaPods](http://cocoapods.org). T
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'incremental-simplified', git: => 'git@github.com:agustindc-rga/incremental-simplified.git'
+pod 'incremental-simplified', :git => 'git@github.com:agustindc-rga/incremental-simplified.git'
 ```
