@@ -147,7 +147,6 @@ final class Observer: Edge {
     }
 }
 
-
 //MARK:-
 
 class Reader: Node, Edge {
@@ -206,6 +205,9 @@ public final class Var<A> {
     
     public func set(_ newValue: A) {
         i.write(newValue)
+    }
+    public func get() -> A {
+        return i.read()
     }
     
     public func change(_ by: (inout A) -> ()) {
@@ -272,6 +274,10 @@ public final class I<A>: AnyI, Node {
         return Disposable { [weak self] in
             self?.observers.remove(token)
         }
+    }
+    
+    public func read() -> A {
+        return value!
     }
     
     /// Returns `self`
