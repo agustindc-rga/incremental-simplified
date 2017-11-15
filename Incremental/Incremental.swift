@@ -257,11 +257,12 @@ public final class I<A>: AnyI, Node {
     }
     
     public func observe(_ observer: @escaping (A) -> ()) -> Disposable {
-        let token = observers.add(Observer {
-            observer(self.value)
+        let token = observers.add(Observer { [weak self] in
+            guard let i = self else { return }
+            observer(i.value)
         })
-        return Disposable { /* should this be weak/unowned? */
-            self.observers.remove(token)
+        return Disposable { [weak self] in
+            self?.observers.remove(token)
         }
     }
     
