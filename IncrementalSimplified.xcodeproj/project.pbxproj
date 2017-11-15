@@ -11,6 +11,7 @@
 		83DC8D411F697DB5004861BF /* Incremental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83DC8D401F697DB5004861BF /* Incremental.swift */; };
 		E343C3831FBA330B00952D64 /* Incremental__iOS_.h in Headers */ = {isa = PBXBuildFile; fileRef = E343C3811FBA330B00952D64 /* Incremental__iOS_.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E343C3871FBA34CA00952D64 /* Incremental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83DC8D401F697DB5004861BF /* Incremental.swift */; };
+		E343C38F1FBA376D00952D64 /* IncrementalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343C38E1FBA376D00952D64 /* IncrementalTests.swift */; };
 		E343C3911FBA376D00952D64 /* Incremental.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83DC8D381F697DA5004861BF /* Incremental.framework */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,9 @@
 		E343C37F1FBA330B00952D64 /* Incremental.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Incremental.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E343C3811FBA330B00952D64 /* Incremental__iOS_.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Incremental__iOS_.h; sourceTree = "<group>"; };
 		E343C3821FBA330B00952D64 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E343C38C1FBA376D00952D64 /* IncrementalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IncrementalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E343C38E1FBA376D00952D64 /* IncrementalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalTests.swift; sourceTree = "<group>"; };
+		E343C3901FBA376D00952D64 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +81,7 @@
 				83DC8D421F697E27004861BF /* Samples.playground */,
 				83DC8D391F697DA5004861BF /* Incremental */,
 				E343C3801FBA330B00952D64 /* Incremental (iOS) */,
+				E343C38D1FBA376D00952D64 /* IncrementalTests */,
 				83E47E071F56A04F00CF7E8B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -86,6 +91,7 @@
 			children = (
 				83DC8D381F697DA5004861BF /* Incremental.framework */,
 				E343C37F1FBA330B00952D64 /* Incremental.framework */,
+				E343C38C1FBA376D00952D64 /* IncrementalTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -97,6 +103,15 @@
 				E343C3821FBA330B00952D64 /* Info.plist */,
 			);
 			path = "Incremental (iOS)";
+			sourceTree = "<group>";
+		};
+		E343C38D1FBA376D00952D64 /* IncrementalTests */ = {
+			isa = PBXGroup;
+			children = (
+				E343C38E1FBA376D00952D64 /* IncrementalTests.swift */,
+				E343C3901FBA376D00952D64 /* Info.plist */,
+			);
+			path = IncrementalTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,6 +172,24 @@
 			productReference = E343C37F1FBA330B00952D64 /* Incremental.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		E343C38B1FBA376D00952D64 /* IncrementalTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E343C3941FBA376D00952D64 /* Build configuration list for PBXNativeTarget "IncrementalTests" */;
+			buildPhases = (
+				E343C3881FBA376D00952D64 /* Sources */,
+				E343C3891FBA376D00952D64 /* Frameworks */,
+				E343C38A1FBA376D00952D64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E343C3931FBA376D00952D64 /* PBXTargetDependency */,
+			);
+			name = IncrementalTests;
+			productName = IncrementalTests;
+			productReference = E343C38C1FBA376D00952D64 /* IncrementalTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -175,6 +208,10 @@
 						CreatedOnToolsVersion = 9.1;
 						ProvisioningStyle = Manual;
 					};
+					E343C38B1FBA376D00952D64 = {
+						CreatedOnToolsVersion = 9.1;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 83E47E011F56A04F00CF7E8B /* Build configuration list for PBXProject "IncrementalSimplified" */;
@@ -191,6 +228,7 @@
 			targets = (
 				83DC8D371F697DA5004861BF /* Incremental */,
 				E343C37E1FBA330B00952D64 /* Incremental (iOS) */,
+				E343C38B1FBA376D00952D64 /* IncrementalTests */,
 			);
 		};
 /* End PBXProject section */
@@ -204,6 +242,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		E343C37D1FBA330B00952D64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E343C38A1FBA376D00952D64 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -226,6 +271,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				E343C3871FBA34CA00952D64 /* Incremental.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E343C3881FBA376D00952D64 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E343C38F1FBA376D00952D64 /* IncrementalTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -454,6 +507,34 @@
 			};
 			name = Release;
 		};
+		E343C3951FBA376D00952D64 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = IncrementalTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = io.objcio.IncrementalTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Debug;
+		};
+		E343C3961FBA376D00952D64 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = IncrementalTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = io.objcio.IncrementalTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -480,6 +561,15 @@
 			buildConfigurations = (
 				E343C3841FBA330C00952D64 /* Debug */,
 				E343C3851FBA330C00952D64 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E343C3941FBA376D00952D64 /* Build configuration list for PBXNativeTarget "IncrementalTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E343C3951FBA376D00952D64 /* Debug */,
+				E343C3961FBA376D00952D64 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
