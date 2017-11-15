@@ -221,6 +221,14 @@ public extension Var where A: Equatable {
     }
 }
 
+public extension Var {
+    public func set<T: Equatable>(keyPath p : WritableKeyPath<A, T>, to newValue: T) {
+        change { value in
+            value[keyPath: p] = newValue
+        }
+    }
+}
+
 //MARK:-
 
 /**
@@ -388,6 +396,12 @@ public final class I<A>: AnyI, Node {
 extension I where A: Equatable {
     convenience init(value: A) {
         self.init(value: value, eq: ==)
+    }
+}
+
+extension I {
+    public func map<T: Equatable>(_ p: WritableKeyPath<A, T>) -> I<T> {
+        return self.map { $0[keyPath: p] }
     }
 }
 
