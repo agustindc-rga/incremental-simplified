@@ -1,5 +1,9 @@
 import Foundation
 
+//MARK: Internal
+
+//MARK:-
+
 struct Register<A> {
     typealias Token = Int
     private var items: [Token:A] = [:]
@@ -37,16 +41,7 @@ struct Register<A> {
     }
 }
 
-public final class Disposable {
-    private let dispose: () -> ()
-    init(dispose: @escaping () -> ()) {
-        self.dispose = dispose
-    }
-    
-    deinit {
-        self.dispose()
-    }
-}
+//MARK:-
 
 struct Height: CustomStringConvertible, Comparable {
     var value: Int
@@ -79,6 +74,13 @@ struct Height: CustomStringConvertible, Comparable {
     }
 }
 
+extension Array where Element == Height {
+    var lub: Height {
+        return reduce(into: .zero, { $0.join($1) })
+    }
+}
+
+//MARK:-
 
 // This class is not thread-safe (and not meant to be).
 final class Queue {
@@ -118,19 +120,19 @@ final class Queue {
     }
 }
 
+//MARK:-
+
 protocol Node {
     var height: Height { get }
 }
 
-extension Array where Element == Height {
-    var lub: Height {
-        return reduce(into: .zero, { $0.join($1) })
-    }
-}
+//MARK:-
 
 protocol Edge: class, Node {
     func fire()
 }
+
+//MARK:-
 
 final class Observer: Edge {
     let observer: () -> ()
@@ -146,6 +148,7 @@ final class Observer: Edge {
 }
 
 
+//MARK:-
 
 class Reader: Node, Edge {
     let read: () -> Node
@@ -167,11 +170,33 @@ class Reader: Node, Edge {
     }
 }
 
+//MARK:-
+
 protocol AnyI: class {
     var firedAlready: Bool { get set }
     var strongReferences: Register<Any> { get set }
 }
 
+//MARK: - Public
+
+//MARK:-
+
+public final class Disposable {
+    private let dispose: () -> ()
+    init(dispose: @escaping () -> ()) {
+        self.dispose = dispose
+    }
+    
+    deinit {
+        dispose()
+    }
+}
+
+//MARK:-
+
+/**
+ A Var holds a variable and reports its mutation to observers
+ */
 public final class Var<A> {
     public let i: I<A>
     
@@ -196,13 +221,12 @@ public extension Var where A: Equatable {
     }
 }
 
+//MARK:-
 
-extension I where A: Equatable {
-    convenience init(value: A) {
-        self.init(value: value, eq: ==)
-    }
-}
-
+/**
+ I represents an 'Incremental Value' which can be obtained from a Var instance
+ or by mapping and combining other I instances.
+ */
 public final class I<A>: AnyI, Node {
     fileprivate var value: A!
     var observers = Register<Observer>()
@@ -353,11 +377,16 @@ public final class I<A>: AnyI, Node {
         }
     }
     
-    
     func mutate(_ transform: (inout A) -> ()) {
         var newValue = value!
         transform(&newValue)
         write(newValue)
+    }
+}
+
+extension I where A: Equatable {
+    convenience init(value: A) {
+        self.init(value: value, eq: ==)
     }
 }
 
@@ -380,6 +409,8 @@ public prefix func !(l: I<Bool>) -> I<Bool> {
 public func ==<A>(l: I<A>, r: I<A>) -> I<Bool> where A: Equatable {
     return l.zip2(r, ==)
 }
+
+//MARK: - Internal
 
 // The code below isn't really ready to be public yet... need to think more about this.
 enum IList<A>: Equatable where A: Equatable {
@@ -405,9 +436,7 @@ enum IList<A>: Equatable where A: Equatable {
             }
         }
     }
-}
 
-extension IList {
     static func ==(l: IList<A>, r: IList<A>) -> Bool {
         switch (l, r) {
         case (.empty, .empty): return true
