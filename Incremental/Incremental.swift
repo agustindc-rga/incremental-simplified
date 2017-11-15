@@ -229,23 +229,23 @@ public extension Var where A: Equatable {
  */
 public final class I<A>: AnyI, Node {
     fileprivate var value: A!
-    var observers = Register<Observer>()
-    var readers: Register<Reader> = Register()
+    private var observers = Register<Observer>()
+    private var readers = Register<Reader>()
     var height: Height {
         return readers.values.map { $0.height }.lub.incremented()
     }
     var firedAlready: Bool = false
-    var strongReferences: Register<Any> = Register()
-    var eq: (A,A) -> Bool
+    var strongReferences = Register<Any>()
+    private var eq: (A, A) -> Bool
     private let constant: Bool
     
-    init(value: A, eq: @escaping (A, A) -> Bool) {
+    fileprivate init(value: A, eq: @escaping (A, A) -> Bool) {
         self.value = value
         self.eq = eq
         self.constant = false
     }
     
-    fileprivate init(eq: @escaping (A,A) -> Bool) {
+    fileprivate init(eq: @escaping (A, A) -> Bool) {
         self.eq = eq
         self.constant = false
     }
@@ -351,25 +351,25 @@ public final class I<A>: AnyI, Node {
     
     public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
         let result = I<B>(eq: ==)
-        var previous: Disposable?
+        var previous: [Disposable] = []
         // todo: we might be able to avoid this closure by having a custom "flatMap" reader
         read(target: result) { value in
-            previous = nil
+            previous.removeAll()
             let (reader, disposable) = transform(value).read { value2 in
                 result.write(value2)
             }
             let token = result.strongReferences.add(disposable)
-            previous = Disposable { result.strongReferences.remove(token) }
+            previous.append(Disposable { result.strongReferences.remove(token) })
             return reader
         }
         return result
     }
     
-    public func zip2<B: Equatable,C: Equatable>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {
+    public func zip<B: Equatable,C: Equatable>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {
         return flatMap { value in other.map { with(value, $0) } }
     }
     
-    public func zip3<B: Equatable,C: Equatable,D: Equatable>(_ x: I<B>, _ y: I<C>, _ with: @escaping (A,B,C) -> D) -> I<D> {
+    public func zip<B: Equatable, C: Equatable, D: Equatable>(_ x: I<B>, _ y: I<C>, _ with: @escaping (A,B,C) -> D) -> I<D> {
         return flatMap { value1 in
             x.flatMap { value2 in
                 y.map { with(value1, value2, $0) }
@@ -395,11 +395,11 @@ public func if_<A: Equatable>(_ condition: I<Bool>, then l: I<A>, else r: I<A>) 
 }
 
 public func &&(l: I<Bool>, r: I<Bool>) -> I<Bool> {
-    return l.zip2(r, { $0 && $1 })
+    return l.zip(r) { $0 && $1 }
 }
 
 public func ||(l: I<Bool>, r: I<Bool>) -> I<Bool> {
-    return l.zip2(r, { $0 || $1 })
+    return l.zip(r) { $0 || $1 }
 }
 
 public prefix func !(l: I<Bool>) -> I<Bool> {
@@ -407,7 +407,7 @@ public prefix func !(l: I<Bool>) -> I<Bool> {
 }
 
 public func ==<A>(l: I<A>, r: I<A>) -> I<Bool> where A: Equatable {
-    return l.zip2(r, ==)
+    return l.zip(r, ==)
 }
 
 //MARK: - Internal
