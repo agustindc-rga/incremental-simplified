@@ -13,6 +13,8 @@
 		E343C3871FBA34CA00952D64 /* Incremental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83DC8D401F697DB5004861BF /* Incremental.swift */; };
 		E343C38F1FBA376D00952D64 /* IncrementalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343C38E1FBA376D00952D64 /* IncrementalTests.swift */; };
 		E343C3911FBA376D00952D64 /* Incremental.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83DC8D381F697DA5004861BF /* Incremental.framework */; };
+		E38C3E831FBCFE77004A49D1 /* ObservationTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C3E811FBCFE77004A49D1 /* ObservationTarget.swift */; };
+		E38C3E841FBD0754004A49D1 /* ObservationTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C3E811FBCFE77004A49D1 /* ObservationTarget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +39,7 @@
 		E343C38C1FBA376D00952D64 /* IncrementalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IncrementalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E343C38E1FBA376D00952D64 /* IncrementalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalTests.swift; sourceTree = "<group>"; };
 		E343C3901FBA376D00952D64 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E38C3E811FBCFE77004A49D1 /* ObservationTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationTarget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +74,7 @@
 				83DC8D3A1F697DA5004861BF /* Incremental.h */,
 				83DC8D3B1F697DA5004861BF /* Info.plist */,
 				83DC8D401F697DB5004861BF /* Incremental.swift */,
+				E38C3E811FBCFE77004A49D1 /* ObservationTarget.swift */,
 			);
 			path = Incremental;
 			sourceTree = "<group>";
@@ -263,6 +267,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				83DC8D411F697DB5004861BF /* Incremental.swift in Sources */,
+				E38C3E841FBD0754004A49D1 /* ObservationTarget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +276,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E343C3871FBA34CA00952D64 /* Incremental.swift in Sources */,
+				E38C3E831FBCFE77004A49D1 /* ObservationTarget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
