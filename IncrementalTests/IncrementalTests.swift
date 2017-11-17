@@ -74,10 +74,11 @@ class IncrementalTests: XCTestCase {
         }
     }
     
-    func givenAnObservation<T>(from target: ObservationTarget, on i: I<T>) {
-        target.observe(i) { _ in
+    @discardableResult
+    func givenAnObservation<T>(on i: I<T>, to target: ObservationTarget) -> ObservationTarget.Token {
+        return i.observe { _ in
             self.callCount += 1
-        }
+        }.on(target)
     }
     
     func givenAValidationBlock() -> (ValueType, ValueType) -> Bool {
@@ -426,13 +427,7 @@ class IncrementalTests: XCTestCase {
         XCTAssertEqual(newValue, value2)
     }
     
-    class Target: ObservationTarget {
-        var observations: [Disposable] = []
-        
-        init() {}
-    }
-    
-    func testObservationTarget() {
+    func testObservationTargetDealloc() {
         let value: NonEquatableType = singleValue()
         let variable = Var(value, eq: alwaysDifferent)
         
@@ -440,15 +435,38 @@ class IncrementalTests: XCTestCase {
         variable.set(value)
         thenBlockIsNotCalled()
         
-        var target = Target()
-        givenAnObservation(from: target, on: variable.i)
+        var target = ObservationTarget()
+        givenAnObservation(on: variable.i, to: target)
         
         givenNoCalls()
         variable.set(value)
         thenBlockIsCalled()
         
         // when target is deleted
-        target = Target()
+        target = ObservationTarget()
+        
+        givenNoCalls()
+        variable.set(value)
+        thenBlockIsNotCalled()
+    }
+    
+    func testObservationTargetRemoval() {
+        let value: NonEquatableType = singleValue()
+        let variable = Var(value, eq: alwaysDifferent)
+        
+        givenNoCalls()
+        variable.set(value)
+        thenBlockIsNotCalled()
+        
+        let target = ObservationTarget()
+        let observation = givenAnObservation(on: variable.i, to: target)
+        
+        givenNoCalls()
+        variable.set(value)
+        thenBlockIsCalled()
+        
+        // when observation is cancelled
+        target.cancel(observation)
         
         givenNoCalls()
         variable.set(value)
