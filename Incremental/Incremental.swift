@@ -463,6 +463,30 @@ extension I {
     }
 }
 
+//MARK: reduce
+
+extension I {
+    public func reduce<B>(_ initial: B, eq: @escaping Eq<B>, _ transform: @escaping (B, A) -> B) -> I<B> {
+        var current = initial
+        return map(eq: eq) {
+            current = transform(current, $0)
+            return current
+        }
+    }
+    
+    public func reduce<B: Equatable>(_ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        return reduce(initial, eq: ==, transform)
+    }
+    
+    public func reduce<B: Equatable>(_ initial: [B], _ transform: @escaping ([B], A) -> [B]) -> I<[B]> {
+        return reduce(initial, eq: ==, transform)
+    }
+    
+    public func reduce<B>(_ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        return reduce(initial, eq: _eqFalse, transform)
+    }
+}
+
 //MARK: zip
 
 // zip 2

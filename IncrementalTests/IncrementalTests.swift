@@ -473,6 +473,93 @@ class IncrementalTests: XCTestCase {
         thenBlockIsNotCalled()
     }
     
+    func testReduce() {
+        let value: NonEquatableType = singleValue()
+        let variable = Var(value)
+        let observable = variable.i.reduce([], eq: alwaysDifferent) {
+            $0 + [$1]
+        }
+        givenAnObservation(on: observable)
+        
+        thenObservable(observable, hasNonEquatableValue: [value])
+        
+        givenNoCalls()
+        variable.set(value)
+        thenBlockIsCalled()
+        thenObservable(observable, hasNonEquatableValue: [value,value])
+        
+        givenNoCalls()
+        variable.set(value)
+        thenBlockIsCalled()
+        thenObservable(observable, hasNonEquatableValue: [value,value,value])
+    }
+    
+    func testReduceToEquatable() {
+        let (value1, value2) = differentValues()
+        let nonEqValue1: NonEquatableType = value1
+        let nonEqValue2: NonEquatableType = value2
+        
+        let variable = Var(nonEqValue1)
+        let observable = variable.i.reduce(ValueType()) {
+            ($1 as! ValueType)
+        }
+        givenAnObservation(on: observable)
+        
+        thenObservable(observable, hasValue: value1)
+        
+        givenNoCalls()
+        variable.set(nonEqValue1)
+        thenBlockIsNotCalled()
+        thenObservable(observable, hasValue: value1)
+        
+        givenNoCalls()
+        variable.set(nonEqValue2)
+        thenBlockIsCalled()
+        thenObservable(observable, hasValue: value2)
+    }
+    
+    func testReduceEquatableArray() {
+        let (value1, value2) = differentValues()
+        let variable = Var(value1)
+        let observable = variable.i.reduce([]) {
+            $0 + [$1]
+        }
+        givenAnObservation(on: observable)
+        
+        thenObservable(observable, hasValue: [value1])
+        
+        givenNoCalls()
+        variable.set(value1)
+        thenBlockIsNotCalled()
+        thenObservable(observable, hasValue: [value1])
+        
+        givenNoCalls()
+        variable.set(value2)
+        thenBlockIsCalled()
+        thenObservable(observable, hasValue: [value1, value2])
+    }
+    
+    func testReduceEquatable() {
+        let (value1, value2) = differentValues()
+        let variable = Var(value1)
+        let observable = variable.i.reduce(ValueType()) {
+            $0 + $1
+        }
+        givenAnObservation(on: observable)
+        
+        thenObservable(observable, hasValue: value1)
+        
+        givenNoCalls()
+        variable.set(value1)
+        thenBlockIsNotCalled()
+        thenObservable(observable, hasValue: value1)
+        
+        givenNoCalls()
+        variable.set(value2)
+        thenBlockIsCalled()
+        thenObservable(observable, hasValue: value1 + value2)
+    }
+    
     //MARK: Helpers
     
     func singleValue() -> ValueType {
