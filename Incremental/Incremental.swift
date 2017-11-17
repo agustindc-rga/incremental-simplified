@@ -178,6 +178,8 @@ protocol AnyI: class {
 
 //MARK: - Public
 
+public typealias Eq<T> = (T,T) -> Bool
+
 //MARK:-
 
 public final class Disposable {
@@ -199,21 +201,23 @@ public final class Disposable {
 public final class Var<A> {
     public let i: I<A>
     
-    public init(_ value: A, eq: @escaping (A,A) -> Bool) {
+    public init(_ value: A, eq: @escaping Eq<A>) {
         i = I(value: value, eq: eq)
     }
     
     public func set(_ newValue: A) {
-        i.write(newValue)
+        value = newValue
     }
-    public func get() -> A {
-        return i.read()
+    
+    public var value: A {
+        get { return i.read() }
+        set { i.write(newValue) }
     }
     
     public func change(_ by: (inout A) -> ()) {
-        var copy = i.value!
+        var copy = value
         by(&copy)
-        i.write(copy)
+        value = copy
     }
 }
 
@@ -224,9 +228,25 @@ public extension Var where A: Equatable {
 }
 
 public extension Var {
-    public func set<T: Equatable>(keyPath p : WritableKeyPath<A, T>, to newValue: T) {
+    public convenience init(_ value: A) {
+        self.init(value, eq: _eqFalse)
+    }
+}
+
+extension Var where A == Void {
+    public convenience init() {
+        self.init(())
+    }
+    
+    public func notify() {
+        set(())
+    }
+}
+
+public extension Var {
+    public func set<T>(keyPath: WritableKeyPath<A, T>, to newValue: T) {
         change { value in
-            value[keyPath: p] = newValue
+            value[keyPath: keyPath] = newValue
         }
     }
 }
@@ -239,23 +259,29 @@ public extension Var {
  */
 public final class I<A>: AnyI, Node {
     fileprivate var value: A!
+    
+    //Private
     private var observers = Register<Observer>()
     private var readers = Register<Reader>()
-    var height: Height {
-        return readers.values.map { $0.height }.lub.incremented()
-    }
-    var firedAlready: Bool = false
-    var strongReferences = Register<Any>()
     private var eq: (A, A) -> Bool
     private let constant: Bool
     
-    fileprivate init(value: A, eq: @escaping (A, A) -> Bool) {
+    //Node
+    var height: Height {
+        return readers.values.map { $0.height }.lub.incremented()
+    }
+    
+    //AnyI
+    var firedAlready: Bool = false
+    var strongReferences = Register<Any>()
+
+    fileprivate init(value: A, eq: @escaping Eq<A>) {
         self.value = value
         self.eq = eq
         self.constant = false
     }
     
-    fileprivate init(eq: @escaping (A, A) -> Bool) {
+    fileprivate init(eq: @escaping Eq<A>) {
         self.eq = eq
         self.constant = false
     }
@@ -296,7 +322,7 @@ public final class I<A>: AnyI, Node {
         return self
     }
     
-    func read(_ read: @escaping (A) -> Node) -> (Reader, Disposable) {
+    fileprivate func read(_ read: @escaping (A) -> Node) -> (Reader, Disposable) {
         let reader = Reader(read: {
             read(self.value)
         })
@@ -311,61 +337,99 @@ public final class I<A>: AnyI, Node {
     }
     
     @discardableResult
-    func read(target: AnyI, _ read: @escaping (A) -> Node) -> Reader {
+    fileprivate func read(target: AnyI, _ read: @escaping (A) -> Node) -> Reader {
         let (reader, disposable) = self.read(read)
         target.strongReferences.add(disposable)
         return reader
     }
     
-    func connect<B>(result: I<B>, _ transform: @escaping (A) -> B) {
+    fileprivate func connect<B>(result: I<B>, _ transform: @escaping (A) -> B) {
         read(target: result) { value in
             result.write(transform(value))
         }
     }
-    
+
+    fileprivate func mutate(_ transform: (inout A) -> ()) {
+        var newValue = value!
+        transform(&newValue)
+        write(newValue)
+    }
+}
+
+extension I where A: Equatable {
+    fileprivate convenience init(value: A) {
+        self.init(value: value, eq: ==)
+    }
+}
+
+//MARK: map
+
+extension I {
     public func map<B: Equatable>(_ transform: @escaping (A) -> B) -> I<B> {
-        let result = I<B>(eq: ==)
-        connect(result: result, transform)
-        return result
+        return map(eq: ==, transform)
     }
     
     // convenience for optionals
     public func map<B: Equatable>(_ transform: @escaping (A) -> B?) -> I<B?> {
-        let result = I<B?>(eq: ==)
-        connect(result: result, transform)
-        return result
+        return map(eq: ==, transform)
     }
     
     // convenience for arrays
     public func map<B: Equatable>(_ transform: @escaping (A) -> [B]) -> I<[B]> {
-        let result = I<[B]>(eq: ==)
-        connect(result: result, transform)
-        return result
+        return map(eq: ==, transform)
+    }
+    
+    public func map<B>(eq: @escaping Eq<B>, _ transform: @escaping (A) -> [B]) -> I<[B]> {
+        return map(eq: _eqArrays(eq), transform)
     }
     
     // convenience for other types
-    public func map<B>(eq: @escaping (B,B) -> Bool, _ transform: @escaping (A) -> B) -> I<B> {
+    public func map<B>(eq: @escaping Eq<B>, _ transform: @escaping (A) -> B) -> I<B> {
         let result = I<B>(eq: eq)
         connect(result: result, transform)
         return result
     }
     
-    //    // convenience for other types
-    //    func map<B>(eq: @escaping (B,B) -> Bool, _ transform: @escaping (A) -> B?) -> I<B?> {
-    //        let result = I<B?>(eq: {
-    //            switch ($0, $1) {
-    //            case (nil,nil): return true
-    //            case let (x?, y?): return eq(x,y)
-    //            default: return false
-    //            }
-    //        })
-    //        connect(result: result, transform)
-    //        return result
-    //    }
+    public func map<B>(_ transform: @escaping (A) -> B) -> I<B> {
+        return map(eq: _eqFalse, transform)
+    }
     
+//    // convenience for other types
+//    func map<B>(eq: @escaping (B,B) -> Bool, _ transform: @escaping (A) -> B?) -> I<B?> {
+//        let result = I<B?>(eq: {
+//            switch ($0, $1) {
+//            case (nil,nil): return true
+//            case let (x?, y?): return eq(x,y)
+//            default: return false
+//            }
+//        })
+//        connect(result: result, transform)
+//        return result
+//    }
     
-    public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
-        let result = I<B>(eq: ==)
+    // convenience for changing the equality check
+    public func map(eq: @escaping Eq<A>) -> I<A> {
+        return map(eq: eq, { $0 })
+    }
+}
+
+//MARK: key-path
+
+extension I {
+    public func map<T: Equatable>(_ keyPath: WritableKeyPath<A, T>) -> I<T> {
+        return map { $0[keyPath: keyPath] }
+    }
+    
+    public func map<T>(_ keyPath: WritableKeyPath<A, T>, eq: @escaping Eq<T>) -> I<T> {
+        return map(eq: eq) { $0[keyPath: keyPath] }
+    }
+}
+
+//MARK: flatMap
+
+extension I {
+    public func flatMap<B>(eq: @escaping Eq<B>, _ transform: @escaping (A) -> I<B>) -> I<B> {
+        let result = I<B>(eq: eq)
         var previous: [Disposable] = []
         // todo: we might be able to avoid this closure by having a custom "flatMap" reader
         read(target: result) { value in
@@ -380,36 +444,84 @@ public final class I<A>: AnyI, Node {
         return result
     }
     
-    public func zip<B: Equatable,C: Equatable>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {
-        return flatMap { value in other.map { with(value, $0) } }
+    public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
+        return flatMap(eq: ==, transform)
     }
     
-    public func zip<B: Equatable, C: Equatable, D: Equatable>(_ x: I<B>, _ y: I<C>, _ with: @escaping (A,B,C) -> D) -> I<D> {
+    public func flatMap<B>(_ transform: @escaping (A) -> I<B>) -> I<B> {
+        return flatMap(eq: _eqFalse, transform)
+    }
+    
+    // convenience for arrays
+    
+    public func flatMap<B>(eq: @escaping Eq<B>, _ transform: @escaping (A) -> I<[B]>) -> I<[B]> {
+        return flatMap(eq: _eqArrays(eq), transform)
+    }
+    
+    public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<[B]>) -> I<[B]> {
+        return flatMap(eq: ==, transform)
+    }
+}
+
+//MARK: zip
+
+// zip 2
+extension I {
+    public func zip<B: Equatable, C: Equatable>(_ other: I<B>, _ transform: @escaping (A, B) -> C) -> I<C> {
+        return flatMap { value in
+            other.map { transform(value, $0) }
+        }
+    }
+    
+    public func zip<B, C>(_ other: I<B>, eq: @escaping Eq<C>, _ transform: @escaping (A, B) -> C) -> I<C> {
+        return flatMap(eq: eq) { value in
+            other.map(eq: eq) { transform(value, $0) }
+        }
+    }
+    
+    public func zip<B, C>(_ other: I<B>, _ transform: @escaping (A, B) -> C) -> I<C> {
+        return zip(other, eq: _eqFalse, transform)
+    }
+    
+    // convenience for tuples
+    
+    public func zip<B>(_ other: I<B>) -> I<(A, B)> {
+        let _eq = (self.eq, other.eq)
+        let eq: Eq<(A,B)> = { _eq.0($0.0, $1.0) && _eq.1($0.1, $1.1) }
+        
+        return zip(other, eq: eq) { ($0, $1) }
+    }
+}
+
+// zip 3
+extension I {
+    public func zip<B: Equatable, C: Equatable, D: Equatable>(_ x: I<B>, _ y: I<C>, _ transform: @escaping (A,B,C) -> D) -> I<D> {
         return flatMap { value1 in
             x.flatMap { value2 in
-                y.map { with(value1, value2, $0) }
+                y.map { transform(value1, value2, $0) }
+            }
+        }
+    }
+
+    public func zip<B, C, D>(_ x: I<B>, _ y: I<C>, eq: @escaping Eq<D>, _ transform: @escaping (A,B,C) -> D) -> I<D> {
+        return flatMap(eq: eq) { value1 in
+            x.flatMap(eq: eq) { value2 in
+                y.map(eq: eq) { transform(value1, value2, $0) }
             }
         }
     }
     
-    func mutate(_ transform: (inout A) -> ()) {
-        var newValue = value!
-        transform(&newValue)
-        write(newValue)
+    // convenience for tuples
+    
+    public func zip<B, C>(_ x: I<B>, _ y: I<C>) -> I<(A,B,C)> {
+        let _eq = (self.eq, x.eq, y.eq)
+        let eq: Eq<(A,B,C)> = { _eq.0($0.0, $1.0) && _eq.1($0.1, $1.1) && _eq.2($0.2, $1.2) }
+        
+        return zip(x, y, eq: eq) { ($0, $1, $2) }
     }
 }
 
-extension I where A: Equatable {
-    convenience init(value: A) {
-        self.init(value: value, eq: ==)
-    }
-}
-
-extension I {
-    public func map<T: Equatable>(_ p: WritableKeyPath<A, T>) -> I<T> {
-        return self.map { $0[keyPath: p] }
-    }
-}
+//MARK: operators
 
 public func if_<A: Equatable>(_ condition: I<Bool>, then l: I<A>, else r: I<A>) -> I<A> {
     return condition.flatMap { $0 ? l : r }
@@ -465,3 +577,18 @@ enum IList<A>: Equatable where A: Equatable {
         }
     }
 }
+
+//MARK: helper functions
+
+private func _eqArrays<T>(_ eq: @escaping Eq<T>) -> ([T], [T]) -> Bool {
+    return { lhs, rhs in
+        guard lhs.count == rhs.count else { return false }
+        
+        return !Swift.zip(lhs, rhs).contains { !eq($0.0, $0.1) }
+    }
+}
+
+private func _eqFalse<T>(_:T, _:T) -> Bool {
+    return false
+}
+

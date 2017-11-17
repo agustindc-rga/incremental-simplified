@@ -395,7 +395,7 @@ class IncrementalTests: XCTestCase {
         XCTAssertEqual(newValue, nil)
         
         givenAnObservation(on: variable, handler: { _ in
-            newValue = variable.get()
+            newValue = variable.value
         })
         
         thenVariable(variable, equals: value1)
